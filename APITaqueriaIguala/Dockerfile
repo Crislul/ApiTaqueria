@@ -1,22 +1,19 @@
-# Etapa base
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-WORKDIR /app
-EXPOSE 80
-
-# Etapa de build
+# Usa la imagen base para compilar
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["APITaqueriaIguala/APITaqueriaIguala.csproj", "APITaqueriaIguala/"]
-RUN dotnet restore "APITaqueriaIguala/APITaqueriaIguala.csproj"
-COPY . .
-WORKDIR "/src/APITaqueriaIguala"
-RUN dotnet build "APITaqueriaIguala.csproj" -c Release -o /app/build
 
-FROM build AS publish
+# Copia solo el .csproj primero para restaurar dependencias
+COPY ["APITaqueriaIguala.csproj", "."]
+RUN dotnet restore "APITaqueriaIguala.csproj"
+
+# Copia el resto del proyecto
+COPY . .
+
+# Compila en modo release
 RUN dotnet publish "APITaqueriaIguala.csproj" -c Release -o /app/publish
 
-# Etapa final
-FROM base AS final
+# Imagen final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "APITaqueriaIguala.dll"]
