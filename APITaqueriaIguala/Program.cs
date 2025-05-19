@@ -77,4 +77,19 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
+    {
+        var conectado = db.Database.CanConnect();
+        Console.WriteLine($"✅ ¿Base de datos conectada?: {conectado}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error al conectar a la base de datos: {ex.Message}");
+    }
+}
+
+
 app.Run();
