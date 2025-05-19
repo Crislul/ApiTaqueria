@@ -1,15 +1,15 @@
 ﻿using APITaqueriaIguala.Data;
 using APITaqueriaIguala.Services;
-using APITaqueriaIguala.Models; // Asegúrate de incluir esta directiva
+using APITaqueriaIguala.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.FileProviders;
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.Extensions.Logging; // ✅ PARA USAR ILogger
 
-// ❌ QUITAMOS la parte que forzaba HTTP
+var builder = WebApplication.CreateBuilder(args);
 
 // Servicios
 builder.Services.AddControllers();
@@ -24,13 +24,12 @@ builder.Services.AddCors(options =>
                         .AllowAnyHeader());
 });
 
-//cambia la configuracion para habilitar la conexion 
+// Contexto de base de datos
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("CmsShoppingCartContext"),
         sqlOptions => sqlOptions.EnableRetryOnFailure()
     ));
-
 
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddControllers().AddNewtonsoftJson();
@@ -62,9 +61,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// ✅ Redirigir HTTP a HTTPS
+// Redirigir HTTP a HTTPS
 app.UseHttpsRedirection();
 
+// Archivos estáticos para media
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
@@ -77,19 +77,24 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// ✅ VERIFICACIÓN DE CONEXIÓN CON LOGGERS
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     try
     {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var conectado = db.Database.CanConnect();
-        Console.WriteLine($"✅ ¿Base de datos conectada?: {conectado}");
+        logger.LogInformation($"✅ ¿Base de datos conectada?: {conectado}");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ Error al conectar a la base de datos: {ex.Message}");
+        logger.LogError($"❌ Error al conectar a la base de datos: {ex.Message}");
+        if (ex.InnerException != null)
+        {
+            logger.LogError($"🔍 Detalle interno: {ex.InnerException.Message}");
+        }
     }
 }
-
 
 app.Run();
