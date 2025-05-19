@@ -1,0 +1,6 @@
+@APITaqueriaIguala_HostAddress = http://localhost:5212
+
+GET {{APITaqueriaIguala_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

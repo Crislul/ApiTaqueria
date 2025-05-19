@@ -1,0 +1,28 @@
+﻿# Archivos de configuración de usuario
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Archivos temporales de Visual Studio
+.vs/
+*.vspx
+*.vsidx
+*.dbmdl
+
+# Build output
+bin/
+obj/
+Debug/
+Release/
+*.dll
+*.exe
+*.pdb
+*.cache
+
+# Configuración y logs
+*.log
+
+# Archivos de Rider y VS Code (opcional)
+.idea/
+.vscode/
